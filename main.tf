@@ -1,14 +1,13 @@
 terraform {
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
-      version = "3.19.0"
+      source = "hashicorp/aws"
     }
   }
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = data.terraform_remote_state.vpc.outputs.aws_region
 }
 
 resource "random_string" "lb_id" {
@@ -25,8 +24,8 @@ module "elb_http" {
 
   internal = false
 
-  security_groups = []
-  subnets         = []
+  security_groups = data.terraform_remote_state.vpc.outputs.lb_security_group_ids
+  subnets         = data.terraform_remote_state.vpc.outputs.public_subnet_ids
 
   number_of_instances = length(aws_instance.app)
   instances           = aws_instance.app.*.id
@@ -48,12 +47,22 @@ module "elb_http" {
 }
 
 resource "aws_instance" "app" {
-  ami = "ami-04d29b6f966df1537"
+  ami = data.aws_ami.amazon_linux.id
 
   instance_type = var.instance_type
+  
+  // For each private subnet, create the amount of instances specified in the instances_per_subnet variable (2 in our case). So we end up with a total of 4 instances.
+  count = var.instances_per_subnet * length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)
 
-  subnet_id              = ""
-  vpc_security_group_ids = []
+  //count.index          — The distinct index number (starting with 0) of each instance. 
+  //length(data..)       - The length of the list of private subnet ids (2 in our case)
+  //count.index % length - The remainder of 0 / 2 - in case of instance#1 = 0
+  //                                        1 / 2 - in case of instance#2 = 1
+  //                                        2 / 2 - in case of instance#3 = 0
+  //                                        3 / 2 - in case of instance#4 = 1
+  subnet_id              = data.terraform_remote_state.vpc.outputs.private_subnet_ids[count.index % length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)]
+  
+  vpc_security_group_ids = data.terraform_remote_state.vpc.outputs.app_security_group_ids
 
   user_data = <<-EOF
     #!/bin/bash
@@ -63,4 +72,22 @@ resource "aws_instance" "app" {
     sudo systemctl start httpd
     echo "<html><body><div>Hello, world!</div></body></html>" > /var/www/html/index.html
     EOF
+}
+
+data "terraform_remote_state" "vpc" {
+  backend = "local"
+
+  config = {
+    path = "../learn-terraform-data-sources-vpc/terraform.tfstate"
+  }
+}
+
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
 }
