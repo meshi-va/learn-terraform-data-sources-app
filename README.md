@@ -4,7 +4,7 @@ I forked this repo in order to complete [this tutorial](https://learn.hashicorp.
 
 This repo relies on [meshi-va/learn-terraform-data-sources-vpc](https://github.com/meshi-va/learn-terraform-data-sources-vpc), hence it should be only used with `terraform apply` once the configuration in the previously mentioned repo is applied. 
 
-In this README I'll try to document the tasks that were the most challenging for me to understand, and explain them in more digestable way.
+In this README I'll try to document the tasks that were the most challenging for me to understand, and explain them in a more digestable way.
 
 ## Resource overview
 
