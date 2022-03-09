@@ -74,7 +74,7 @@ variable "instances_per_subnet" {
 
 ---
 
-### More complex tasks
+## Detailed tasks
 
 One of the easier tasks was to change the instance count to 2 instances per private subnets:
 
