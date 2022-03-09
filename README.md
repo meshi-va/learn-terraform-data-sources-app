@@ -6,6 +6,13 @@ This repo relies on [meshi-va/learn-terraform-data-sources-vpc](https://github.c
 
 In this README I'll try to document the tasks that were the most challenging for me to understand, and explain them in a more digestable way.
 
+## Objectives
+
+1. In this tutorial, you will use Terraform to deploy a workspace containing a VPC and security groups on AWS in the `us-east-1` region. 
+2. Next, you will use the `aws_availability_zones` data source to configure your VPC's Availability Zones (AZs), allowing you to deploy this configuration in any AWS region.
+3. Then, you will use the `terraform_remote_state` data source to deploy another workspace containing your application infrastructure to your VPC. 
+4. Finally, you will use the `aws_ami` data source to configure the correct AMI for the current region.
+
 ## Resource overview
 
 ### Defined in the VPC repo
@@ -126,3 +133,12 @@ private_subnet_ids = [
 | aws_instance.app[3] | 3 | 2 | 1 | private_subnet_ids[1] | subnet-05a921f34e27a88de |
 
 To make the above table readable, I replaced `data.terraform_remote_state.vpc.outputs.private_subnet_ids[]` with `private_subnet_ids`.
+
+## Completed tasks
+
+- Added a `terraform_remote_state` data source block to `main.tf`
+- Changed the `aws` provider `region` to the region output from the VPC workspace
+- Configured the load balancer security group and subnet with the corresponding outputs from the VPC workspace
+- Updated `main.tf` to use multiple EC2 instances per subnet
+- Configured region-specific AMIs by adding the `aws_ami` data source block and changing the the `ami` id of the `aws_instance` resource
+- Configured EC2 subnet and security groups, which I described in detail above
