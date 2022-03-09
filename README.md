@@ -82,7 +82,7 @@ Since the `var.instances_per_subnet` is hard coded as `2` and I defined the priv
 
 The other task was a bit harder to understand, but I'll do my best to explain it.
 
-So the tutorial instructs me to add `data.terraform_remote_state.vpc.outputs.private_subnet_ids[count.index % length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)]` as the subnet_id for the `aws_instance.app` resource:
+So the tutorial instructs me to add `data.terraform_remote_state.vpc.outputs.private_subnet_ids[count.index % length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)]` as the `subnet_id` for the `aws_instance.app` resource:
 
 ```
 resource "aws_instance" "app" {
@@ -95,6 +95,7 @@ resource "aws_instance" "app" {
 This line of code is to define which private subnet ID to use for each instance.
 
 But how does it exactly does it do that?
+
 In the previous repo, I defined an output block for the private subnet IDs. These IDs form a list of 2:
 
 ```
