@@ -84,3 +84,30 @@ So the tutorial instructs me to add `data.terraform_remote_state.vpc.outputs.pri
 
 This line of code is to define which private subnet ID to use for each instance.
 
+But how does it exactly determine which instance ends up in which subnet?
+In the previous repo, I defined an output block for the private subnet IDs. These IDs form a list of 2:
+
+```
+private_subnet_ids = [
+  "subnet-0478ce1fe723c6c1a",
+  "subnet-05a921f34e27a88de",
+]
+```
+
+count.index
+: The distinct index number (starting with 0) of each instance. 
+
+length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)
+: The length of the list of private subnet ids (2 in our case)
+
+count.index % length
+: The remainder of `count.index` and `length` which indicates the index of `outputs.private_subnet_ids` that will be used.
+
+A visual representation of how Terraform will allocate the recources:
+
+| count.index | length | remainder | subnet id | instance |
+| ----------- | ----------- | ----------- | ----------- | ----------- |
+| 0 | 2 | 0 | subnet-0478ce1fe723c6c1a | aws_instance.app[0] |
+| 1 | 2 | 1 | subnet-05a921f34e27a88de | aws_instance.app[1] |
+| 2 | 2 | 0 | subnet-0478ce1fe723c6c1a | aws_instance.app[2] |
+| 3 | 2 | 1 | subnet-05a921f34e27a88de | aws_instance.app[3] |
