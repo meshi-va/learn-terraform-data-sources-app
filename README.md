@@ -74,17 +74,25 @@ resource "aws_instance" "app" {
 count = var.instances_per_subnet * length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)
 }
 ```
-Since the `var.instances_per_subnet` is hard coded as `2` and I defined the private subnet to be a list of 2, hence the `length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)` will be `2` as well.
+Since the `var.instances_per_subnet` is hard coded as `2` and I defined the private subnet to be a list of 2, the `length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)` will be `2` as well.
 
 ---
 
 The other task was a bit harder to understand, but I'll do my best to explain it.
 
-So the tutorial instructs me to add `data.terraform_remote_state.vpc.outputs.private_subnet_ids[count.index % length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)]` as the subnet_id for the `aws_instance.app` resource.
+So the tutorial instructs me to add `data.terraform_remote_state.vpc.outputs.private_subnet_ids[count.index % length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)]` as the subnet_id for the `aws_instance.app` resource:
+
+```
+resource "aws_instance" "app" {
+ // ...
+ subnet_id              = data.terraform_remote_state.vpc.outputs.private_subnet_ids[count.index % length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)]
+ // ...
+}
+```
 
 This line of code is to define which private subnet ID to use for each instance.
 
-But how does it exactly determine which instance ends up in which subnet?
+But how does it exactly does it do that?
 In the previous repo, I defined an output block for the private subnet IDs. These IDs form a list of 2:
 
 ```
@@ -103,11 +111,15 @@ private_subnet_ids = [
 `count.index % length`
 : The remainder of `count.index` and `length` which indicates the index of `outputs.private_subnet_ids` that will be used.
 
-A visual representation of how Terraform will allocate the recources:
+---
 
-| count.index | length | remainder | subnet id | instance |
-| ----------- | ----------- | ----------- | ----------- | ----------- |
-| 0 | 2 | 0 | subnet-0478ce1fe723c6c1a | aws_instance.app[0] |
-| 1 | 2 | 1 | subnet-05a921f34e27a88de | aws_instance.app[1] |
-| 2 | 2 | 0 | subnet-0478ce1fe723c6c1a | aws_instance.app[2] |
-| 3 | 2 | 1 | subnet-05a921f34e27a88de | aws_instance.app[3] |
+**A visual representation of how Terraform will allocate the recources:**
+
+| instance | count.index | length | remainder |  private_subnet_ids | subnet id |
+| ----------- | ----------- | ----------- | ----------- | ----------- | ----------- |
+| aws_instance.app[0] | 0 | 2 | 0 | private_subnet_ids[0] | subnet-0478ce1fe723c6c1a |
+| aws_instance.app[1] | 1 | 2 | 1 | private_subnet_ids[1] | subnet-05a921f34e27a88de |
+| aws_instance.app[2] | 2 | 2 | 0 | private_subnet_ids[0] | subnet-0478ce1fe723c6c1a |
+| aws_instance.app[3] | 3 | 2 | 1 | private_subnet_ids[1] | subnet-05a921f34e27a88de |
+
+To make the above table readable, I replaced `data.terraform_remote_state.vpc.outputs.private_subnet_ids[]` with `private_subnet_ids`.
