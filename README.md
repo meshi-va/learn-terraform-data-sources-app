@@ -21,7 +21,7 @@ In the [previous repo](https://github.com/meshi-va/learn-terraform-data-sources-
 
 They are defined in the `module.vpc` 
 
-```
+```hcl
 module "vpc" {
   // ...
   private_subnets = slice(var.private_subnet_cidr_blocks, 0, 2)
@@ -30,7 +30,7 @@ module "vpc" {
 ```
 By slicing the `private_subnet_cidr_blocks` variable in the `variables.tf` file, I define the first and the third object as the subnets to be used:
 
-```
+```hcl
 variable "private_subnet_cidr_blocks" {
   description = "Available cidr blocks for private subnets"
   type        = list(string)
@@ -53,7 +53,7 @@ I also wrote an output block for `public_subnet_ids` so that this workspace can 
 
 Since my VPC configuration is applied in another workspace, I have to link it with a data source:
 
-```
+```hcl
 data "terraform_remote_state" "vpc" {
   backend = "local"
 
@@ -64,7 +64,7 @@ data "terraform_remote_state" "vpc" {
 ```
 The amount of instances per subnet was already defined in the `variables.tf` file:
 
-```
+```hcl
 variable "instances_per_subnet" {
   description = "Number of EC2 instances in each private subnet"
   type        = number
@@ -78,12 +78,12 @@ variable "instances_per_subnet" {
 
 One of the easier tasks was to change the instance count to 2 instances per private subnets:
 
-```
+```hcl
 resource "aws_instance" "app" {
 count = var.instances_per_subnet * length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)
 }
 ```
-Since the `var.instances_per_subnet` is hard coded as `2` and I defined the private subnet to be a list of 2, the `length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)` will be `2` as well.
+Since the `var.instances_per_subnet` is hard coded as `2` and I defined the private subnet to be a list of 2, the `length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)` will be `2` as well. So it results to a total of 4 instances.
 
 ---
 
@@ -91,7 +91,7 @@ The other task was a bit harder to understand, but I'll do my best to explain it
 
 So the tutorial instructs me to add `data.terraform_remote_state.vpc.outputs.private_subnet_ids[count.index % length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)]` as the `subnet_id` for the `aws_instance.app` resource:
 
-```
+```hcl
 resource "aws_instance" "app" {
  // ...
  subnet_id              = data.terraform_remote_state.vpc.outputs.private_subnet_ids[count.index % length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)]
@@ -119,20 +119,20 @@ private_subnet_ids = [
 : The length of the list of private subnet ids (2 in our case)
 
 `count.index % length`
-: The remainder of `count.index` and `length` which indicates the index of `outputs.private_subnet_ids` that will be used.
+: The remainder of `count.index` by `length` which indicates the index of `outputs.private_subnet_ids` that will be used.
 
 ---
 
 **A visual representation of how Terraform will allocate the recources:**
 
-| instance | count.index | length | remainder |  private_subnet_ids | subnet id |
+| instance | count.index | length | remainder |  private_subnet_ids[index] | subnet id |
 | ----------- | ----------- | ----------- | ----------- | ----------- | ----------- |
 | aws_instance.app[0] | 0 | 2 | 0 | private_subnet_ids[0] | subnet-0478ce1fe723c6c1a |
 | aws_instance.app[1] | 1 | 2 | 1 | private_subnet_ids[1] | subnet-05a921f34e27a88de |
 | aws_instance.app[2] | 2 | 2 | 0 | private_subnet_ids[0] | subnet-0478ce1fe723c6c1a |
 | aws_instance.app[3] | 3 | 2 | 1 | private_subnet_ids[1] | subnet-05a921f34e27a88de |
 
-To make the above table readable, I replaced `data.terraform_remote_state.vpc.outputs.private_subnet_ids[]` with `private_subnet_ids`.
+To make the above table more visually pleasing, I replaced `data.terraform_remote_state.vpc.outputs.private_subnet_ids[index]` with `private_subnet_ids[index]`.
 
 ## Completed tasks
 
