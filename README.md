@@ -132,7 +132,7 @@ private_subnet_ids = [
 | aws_instance.app[2] | 2 | 2 | 0 | private_subnet_ids[0] | subnet-0478ce1fe723c6c1a |
 | aws_instance.app[3] | 3 | 2 | 1 | private_subnet_ids[1] | subnet-05a921f34e27a88de |
 
-To make the above table more visually pleasing, I replaced `data.terraform_remote_state.vpc.outputs.private_subnet_ids[index]` with `private_subnet_ids[index]`.
+<sub>To make the above table readable, I replaced `data.terraform_remote_state.vpc.outputs.private_subnet_ids[index]` with `private_subnet_ids[index]`.</sub>
 
 ## Completed tasks
 
