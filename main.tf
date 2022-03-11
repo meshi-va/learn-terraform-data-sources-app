@@ -1,4 +1,4 @@
-terraform {
+ï»¿terraform {
   required_providers {
     aws = {
       source = "hashicorp/aws"
@@ -54,7 +54,7 @@ resource "aws_instance" "app" {
   // For each private subnet, create the amount of instances specified in the instances_per_subnet variable (2 in our case). So we end up with a total of 4 instances.
   count = var.instances_per_subnet * length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)
 
-  //count.index          — The distinct index number (starting with 0) of each instance. 
+  //count.index          ï¿½ The distinct index number (starting with 0) of each instance. 
   //length(data..)       - The length of the list of private subnet ids (2 in our case)
   //count.index % length - The remainder of 0 / 2 - in case of instance#1 = 0
   //                                        1 / 2 - in case of instance#2 = 1
