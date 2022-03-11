@@ -52,7 +52,7 @@ resource "aws_instance" "app" {
   instance_type = var.instance_type
   
   // For each private subnet, create the amount of instances specified in the instances_per_subnet variable (2 in our case). So we end up with a total of 4 instances.
-  count = var.instances_per_subnet * length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)
+  count = var.instances_per_subnet * length(data.terraform_remote_state.vpc.outputs.public_subnet_ids)
 
   //count.index          � The distinct index number (starting with 0) of each instance. 
   //length(data..)       - The length of the list of private subnet ids (2 in our case)
@@ -60,7 +60,7 @@ resource "aws_instance" "app" {
   //                                        1 / 2 - in case of instance#2 = 1
   //                                        2 / 2 - in case of instance#3 = 0
   //                                        3 / 2 - in case of instance#4 = 1
-  subnet_id              = data.terraform_remote_state.vpc.outputs.private_subnet_ids[count.index % length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)]
+  subnet_id              = data.terraform_remote_state.vpc.outputs.public_subnet_ids[count.index % length(data.terraform_remote_state.vpc.outputs.public_subnet_ids)]
   
   vpc_security_group_ids = data.terraform_remote_state.vpc.outputs.app_security_group_ids
 
