@@ -28,7 +28,7 @@ module "vpc" {
   // ...
 }
 ```
-By slicing the `private_subnet_cidr_blocks` variable in the `variables.tf` file, I define the first and the third object as the subnets to be used:
+By slicing the `private_subnet_cidr_blocks` variable in the `variables.tf` file, I define the first and the second object as the subnets to be used:
 
 ```hcl
 variable "private_subnet_cidr_blocks" {
@@ -47,7 +47,7 @@ variable "private_subnet_cidr_blocks" {
 }
 ```
 
-I also wrote an output block for `public_subnet_ids` so that this workspace can read it.
+I also wrote an output block for `private_subnet_ids` so that this workspace can read it.
 
 ### Defined in this repo
 
